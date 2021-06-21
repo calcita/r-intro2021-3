@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Intro a la programación en R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="  Creative Commons Attribution 4.0 International License" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Intro a la programación en R
+## Diploma y Maestría en Demografía FCS <br> Gabriela Mathieu <br> Junio 2021
+### <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /> <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>
+
+---
+
+
+
+
+
+
+
+
+# ¿Qué haremos hoy?
+
+- Repaso del segundo taller 
+&lt;br&gt;
+--
+
+- Encadenar funciones: operador &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;%&amp;gt;%&lt;/span&gt; (pipe)
+&lt;br&gt;
+--
+
+- Crear una variable a partir de ciertas condiciones: &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;case_when()&lt;/span&gt;
+&lt;br&gt;
+--
+
+- Recodificar y renombrar variables
+&lt;br&gt;
+--
+
+- Exportar objetos a archivos rds/Rdata. Importar archivos rds/Rdata.
+&lt;br&gt;
+--
+
+- Unir dos data frame 
+
+&lt;!-- forcats --&gt;
+&lt;!-- https://stat545.com/character-vectors.html --&gt;
+
+---
+class: inverse, center, middle
+# %&gt;%
+
+---
+# Encadenamiento de funciones en lugar de anidación
+
+El operador &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;%&amp;gt;%&lt;/span&gt;, llamado &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;pipe&lt;/span&gt; (significa tubería) permitirá &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;encadenar funciones&lt;/span&gt; en lugar de colocar una dentro de otra sin una a continuación de la otra.
+&lt;br&gt;&lt;br&gt;
+--
+
+- El pipe estructura una secuencia de operaciones sobre los datos de &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;izquierda a derecha&lt;/span&gt;.
+&lt;br&gt;&lt;br&gt;
+--
+
+- A diferencia de la anidación de funciones que implica operaciones de adentro para afuera. 
+&lt;br&gt;&lt;br&gt;
+--
+
+- En lugar de f(x): &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;x %&amp;gt;% f()&lt;/span&gt;
+&lt;br&gt;&lt;br&gt;
+--
+
+---
+# Pipe: atajo de teclado en Linux/Windows
+
+![](img/linux_pipe.png)
+
+---
+# Pipe: atajo de teclado en Mac
+
+![](img/mac_pipe.png)
+---
+# Armar un mate con y sin 'pipe'
+
+El &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;mate&lt;/span&gt; es el &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;data frame&lt;/span&gt;, los &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;verbos&lt;/span&gt; de dplyr (así se llaman a las funciones que vimos) son las acciones que necesitamos para armarlo: poner la yerba, poner un poco de agua, dejarlo hinchar, poner la bombilla, cebar.
+--
+
+
+```r
+# Mate con 'pipe'
+
+mate %&gt;% 
+        poner_yerba() %&gt;%
+        hinchar() %&gt;%
+        colocar_bombilla() %&gt;%
+        cebar()
+```
+
+--
+
+En R base y sin el pipe tendríamos que concatenar estas funciones. Cuando las funciones están concatenadas el orden en que se ejecutan se obtiene de adentro hacia afuera.
+
+
+```r
+# Mate sin 'pipe'
+
+cebar(colocar_bombilla(hinchar(poner_yerba(mate))))
+```
+
+&lt;!-- [magrittr](https://github.com/tidyverse/magrittr/blob/master/vignettes/magrittr.Rmd) --&gt;
+
+---
+# Rehacemos los ejemplos usando %&gt;%
+
+- Leemos los datos
+
+
+```r
+gapminder &lt;- readr::read_csv("data/gapminder.csv") #importo los datos
+```
+--
+
+- Agrupo por continente y calculo el promedio de expectativa de vida al nacer
+--
+
+- Sin el pipe teníamos:
+
+
+```r
+*summarise(group_by(gapminder, continent), promedio = mean(lifeExp))
+```
+--
+
+- Con el pipe tenemos:
+
+
+```r
+*gapminder %&gt;%
+* group_by(continent) %&gt;%
+* summarise(promedio = mean(lifeExp))
+```
+
+---
+# Ejercicio (6')
+
+Rehace el ejercicio 1.1, 2.1, 2.2 y 3.2 del taller pero esta vez usando el pipe. Copia el código anterior y adaptalo al pipe.
+
+- Selecciona los casos que tienen entre de 20 y 40 años de expectativa de vida al nacer y guarda en un objeto llamado `countries_20_40`.
+
+- Calcula la variable `exp_vida_nacer` redondeada a dos dígitos.
+
+- ¿Cuál es el máximo y mínimo de expectativa de vida al nacer que registra un país?
+
+- Calcula la esperanza de vida al nacer promedio por continente para el año 2007.
+
+---
+class: inverse, center, middle
+# dplyr::case_when()
+
+---
+# Crear una variable a partir de varias condiciones
+
+La función &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;case_when()&lt;/span&gt; permite calcular una nueva variable a partir de condicionar los valores de otra. Se usa dentro de mutate().
+
+
+```r
+gapminder &lt;- gapminder %&gt;% 
+* mutate(life_exp = case_when(
+*    lifeExp &lt; 40 ~ "&lt;40",
+*    lifeExp &gt;= 40 &amp; lifeExp &lt; 60 ~ "[40, 60)",
+*    lifeExp &gt;= 60 ~ "&gt;=60"))
+```
+
+
+- Chequeo
+
+
+```r
+gapminder %&gt;% count(life_exp)
+```
+
+---
+# Ejercicio (5')
+
+
+- Crear la variable `life_exp_range` con las siguientes categorias: "baja", "medio-baja", "media", "media-alto" y "alta". Defina los intervalos que te parezcan adecuados.
+
+- Traducir las categorías de `continent` en una nueva variable llamada `continente`.
+
+
+---
+class: inverse, center, middle
+# dplyr::ungroup()
+
+
+---
+# Calculo una variable a nivel de grupos
+
+- La función &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;ungroup()&lt;/span&gt; sirve para desagrupar un data frame agrupado. 
+--
+
+- Usarla me permite que la información de los grupos no quede guardada en el objeto (si realización una asignación al resultado), lo cual conllevaría a que todos los demás cálculos se hagan sobre esos grupos.
+--
+
+- No es necesario indicarle ningún argumento. 
+
+
+```r
+gapminder &lt;- gapminder %&gt;%
+* group_by(continent) %&gt;%
+  mutate(promedio = mean(lifeExp)) %&gt;%
+* ungroup()
+```
+--
+
+Podemos confirmar que la nueva variable promedio toma un valor para cada uno de las categorías de `continent`.
+
+
+```r
+gapminder %&gt;% count(continent, promedio)
+```
+
+---
+# Calculo una variable a nivel de grupos
+
+- Además, la función  &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;ungroup()&lt;/span&gt;  me permite encadenar dos agrupaciones diferentes y realizar un cálculo para cada una, como en el ejemplo que sigue. 
+
+
+```r
+gapminder &lt;- gapminder %&gt;%
+* group_by(continent) %&gt;%
+  mutate(promedio = mean(lifeExp)) %&gt;%
+* ungroup() %&gt;%
+* group_by(country) %&gt;%
+  mutate(maximo = max(lifeExp)) %&gt;%
+* ungroup()
+```
+
+Debo recordar desagrupar si no quiero que el objeto gapminder guarde la información de la agrupación.
+
+---
+class: inverse, center, middle
+# dplyr::recode()
+
+---
+# Recodificar una variable
+
+- La función &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;recode()&lt;/span&gt; permite recodificar una variable. 
+--
+
+- recode(&lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;df&amp;gt;&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;variable&amp;gt;&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;categoria_actual&amp;gt;&lt;/span&gt; = &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;categoria_nueva&amp;gt;&lt;/span&gt;)
+--
+ 
+ - Recodifico la variable `continent`, pasando sus categorías a español.
+ 
+
+```r
+gapminder &lt;- gapminder %&gt;%
+*       mutate(continente = recode(continent,
+*                             Africa = "África",
+*                             Americas = "América",
+*                             Asia = "Asia",
+*                             Europe = "Europa",
+*                             Oceania = "Oceanía"))
+```
+
+- Chequeo
+
+
+```r
+gapminder %&gt;% count(continente)
+```
+               
+---
+class: inverse, center, middle
+# dplyr::rename()
+
+---
+# rename
+
+- La función &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;rename()&lt;/span&gt; renombra variables.
+&lt;br&gt;&lt;br&gt;
+--
+
+- rename(&lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;df&amp;gt;&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;nuevo&amp;gt;&lt;/span&gt; = &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;actual&amp;gt;&lt;/span&gt;) 
+&lt;br&gt;&lt;br&gt;
+--
+
+- Renombro las variables `pop`  y `gdpPercap`
+&lt;br&gt;&lt;br&gt;
+--
+
+
+```r
+gapminder &lt;- gapminder %&gt;%
+* rename(poblacion = pop,
+*        pib_pc = gdpPercap)
+```
+
+---
+# Seleccionar columnas
+
+- Cuando un data.frame contiene muchas variables puede ser tedioso hacer un resumen descriptivo nombrando a cada una.
+&lt;br&gt;&lt;br&gt;
+--
+
+- Existe un conjunto de funciones auxiliares para nombrar variables en dplyr. Se usan dentro de select(). Éstas son: &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;starts_with()&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;ends_with()&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;contains()&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;matches()&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;num_range()&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;one_of()&lt;/span&gt; y &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;everything()&lt;/span&gt;.
+&lt;br&gt;&lt;br&gt;
+--
+
+- En select() las variables se nombran sin comillas, pero dentro de las funciones auxiliares van con comillas. 
+
+
+---
+class: inverse, center, middle
+# dplyr::summarise_at()
+
+---
+# Aplicar una función a varias variables
+
+- Las 5 funciones principales de dplyr tienen varias versiones que extienden su funcionalidad.
+
+- Por ejemplo en la función summarise() tenemos:
+  - summarise_if(): afecta a las variables que cumplen una condición
+  - summarise_at(): afecta a las variables indicadas
+  - summarise_all(): afecta a todas las variables
+
+---
+# dplyr::summarise_at() 
+
+- Nombro a las variables dentro de un vector usando la función `c()`
+
+
+```r
+gapminder %&gt;%
+     summarise_at(c("poblacion", "lifeExp"), mean)
+```
+
+Para no tener que poner comillas en nombre de variables uso &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;vars()&lt;/span&gt;
+
+
+```r
+gapminder %&gt;%
+     summarise_at(vars(poblacion, lifeExp), mean)
+```
+
+```
+# A tibble: 1 x 2
+  poblacion lifeExp
+      &lt;dbl&gt;   &lt;dbl&gt;
+1 29601212.    59.5
+```
+
+---
+# Aplicar más de una función
+
+Uso &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;funs()&lt;/span&gt; para indicar las funciones descriptivas
+
+
+```r
+gapminder %&gt;%
+    group_by(continent) %&gt;%
+    summarise_at(c("poblacion", "lifeExp", "pib_pc"),
+                 funs(mean, sd))
+```
+
+Para nombrar los resultados
+
+
+```r
+gapminder %&gt;%
+    group_by(continent) %&gt;%
+    summarise_at(c("poblacion", "lifeExp", "pib_pc"),
+                 funs(Mean = mean, SD = sd))
+```
+
+```
+# A tibble: 5 x 7
+  continent poblacion_Mean lifeExp_Mean pib_pc_Mean poblacion_SD lifeExp_SD
+  &lt;chr&gt;              &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;
+1 Africa          9916003.         48.9       2194.    15490923.       9.15
+2 Americas       24504795.         64.7       7136.    50979430.       9.35
+3 Asia           77038722.         60.1       7902.   206885205.      11.9 
+4 Europe         17169765.         71.9      14469.    20519438.       5.43
+5 Oceania         8874672.         74.3      18622.     6506342.       3.80
+# … with 1 more variable: pib_pc_SD &lt;dbl&gt;
+```
+
+
+---
+class: inverse, center, middle
+# RDS &amp; RData
+
+---
+# Guardar un objeto a un archivo propio de R
+
+- &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;RDS&lt;/span&gt; y &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;RData&lt;/span&gt; son formatos propios de R.
+&lt;br&gt;&lt;br&gt;
+--
+
+- Sirve para &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;guardar objetos de R&lt;/span&gt;. Los archivos ocupan mucho menos espacio que otros formatos.
+&lt;br&gt;&lt;br&gt;
+--
+
+- El formato RDS permite guardar un objeto mientras que RData permite guardar más de un objeto.
+
+
+```r
+# guardar un objeto en formato rds
+
+saveRDS(gapminder, file = "gapminder.RDS") 
+
+# guardar un objeto (data frame) en formato RData
+save(gapminder, file = "data/gapminder.RData")
+```
+--
+
+- En la función &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;save()&lt;/span&gt; debo especificar el argumento `file` de lo contrario me dará error.
+Ya que es posible guardar más de un objeto en el mismo archivo Rdata. 
+
+
+---
+# Leer un archivo Rdata
+
+- Utilizo la función &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;load()&lt;/span&gt;
+
+- No lo asigno a ningún objeto a diferencia del resto de las funciones de importación/lectura.
+
+
+```r
+# cargar un archivo en formato Rdata
+# observar que es el único caso en que no debo asignar a un objeto
+load("data/gapminder.Rdata")
+```
+
+- El nombre del o los objetos ya está asignado, me doy cuenta qué objeto cargó mirando el enviroment.  Un truco es escribir la orden entre paréntesis curvos y se despliega el nombre del objeto en la consola. 
+
+
+```r
+# cargar un archivo en formato Rdata
+# observar que es el único caso en que no debo asignar a un objeto
+(load("data/gapminder.Rdata"))
+```
+
+---
+# Leer un archivo RDS
+
+- Utilizo la función &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;readRDS()&lt;/span&gt;
+
+- En este caso puedo prescindir de nombrar el argumento `file`.
+
+- Debo asignar a un objeto
+
+
+```r
+gapminder &lt;- readRDS("gapminder.RDS")
+```
+
+T
+
+---
+# Ejercicio (5')
+
+- Guardar el objeto gapminder en un archivo Rdata.
+
+- Cargar el archivo generado.
+
+---
+class: inverse, middle, center
+# dplyr::*_join()
+
+---
+# join (merge) data frames
+
+- Las funciones &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;*_join()&lt;/span&gt; de `dplyr` permiten &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;unir dos data frame&lt;/span&gt;. Para ejemplificar llamaremos al primero `x`, al segundo `y`.
+&lt;br&gt;&lt;br&gt;
+--
+
+- Existen &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;6 tipos de joins diferentes&lt;/span&gt;: left, right, full, inner se llaman "mutating joins", mientras que semi y anti se llaman "filtering joins".
+&lt;br&gt;&lt;br&gt;
+--
+
+- Para poder unir `x` e `y`, estos data frame deben tener una &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;variable identificatoria (o clave)&lt;/span&gt; de los casos, la 'key' variable, que no necesariamente debe llamarse igual en cada base. Puede existir más de una key variable.
+&lt;br&gt;&lt;br&gt;
+--
+
+- La estructura de las funciones: &lt;span style=" font-weight: bold;    color: deeppink !important;" &gt;*_join()&lt;/span&gt;(&lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;x&amp;gt;&lt;/span&gt;, &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;y&amp;gt;&lt;/span&gt;, by = &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;&amp;lt;'key'&amp;gt;&lt;/span&gt;)
+&lt;br&gt;&lt;br&gt;
+--
+
+- Una simplificación de cómo operan cada una de estas funciones las veremos mediante gif creados en este tutorial de [tidyexplain](https://www.garrickadenbuie.com/project/tidyexplain/).
+
+---
+# dplyr::left_join
+
+.pull-left[
+
+- &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;Mantiene todos los casos y variables de x.&lt;/span&gt; 
+
+- &lt;span style=" font-weight: bold;    border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #b3e2cd !important;" &gt;Agrega las variables de y&lt;/span&gt;, para los casos de x que no están en y, esas nuevas variables tendrán un dato faltante.
+
+- Si una fila de x matchea con múltiples filas de y, la fila de x se repetirá tantas veces como filas de y. 
+
+]
+
+.pull-right[
+![](img/left-join.gif)
+]
+
+
+
+---
+# dplyr::right_join
+
+.pull-left[
+
+- Se queda con todos los casos y las variables de `y`.
+
+- El `right_join(x, y)` es lo mismo que el `left_join(y, x)`
+]
+.pull-right[
+
+![](img/right-join.gif)
+]
+---
+# full_join
+
+.pull-left[
+- Se queda con todos los casos de `x` y todos los casos `y`.
+
+- Se queda con todos las variables de `x` y todas las de `y`.
+]
+
+.pull-right[
+![](img/full-join.gif)
+]
+
+---
+# inner_join()
+
+.pull-left[
+- Se queda solo con los casos comunes entre `x` e `y`.
+
+
+- Se queda con las variables de ambas bases.
+]
+.pull-right[
+![](img/inner-join.gif)
+]
+
+---
+# semi_join()
+.pull-left[
+- Se queda solo con los casos comunes entre `x` e `y`.
+
+- Se queda solo con las variables de `x`.
+
+]
+.pull-right[
+![](img/semi-join.gif)
+]
+
+
+---
+# dplyr::anti_join
+
+
+- Se queda con los casos de `x` que no están en `y`.
+
+![](img/anti-join.gif)
+
+---
+# Ejemplo *_join()
+
+- Cargo los archivos "gapminder.csv" e "isocode_3166_1.rds".
+--
+
+
+```r
+gapminder &lt;- readr::read_csv("data/gapminder.csv")
+isocode &lt;- readRDS("data/isocode_3166_1.rds")
+```
+
+- Exploro para encontrar cuál es la variable identificatoria en cada data frame.
+--
+
+.pull-left[
+
+```r
+gapminder %&gt;% select(1:3) %&gt;% slice(1:3)
+```
+
+```
+# A tibble: 3 x 3
+  country     continent  year
+  &lt;chr&gt;       &lt;chr&gt;     &lt;dbl&gt;
+1 Afghanistan Asia       1952
+2 Afghanistan Asia       1957
+3 Afghanistan Asia       1962
+```
+]
+.pull-right[
+
+```r
+isocode %&gt;% slice(1:3)
+```
+
+```
+# A tibble: 3 x 3
+  country     iso_alpha iso_num
+  &lt;chr&gt;       &lt;chr&gt;       &lt;int&gt;
+1 Afghanistan AFG             4
+2 Albania     ALB             8
+3 Algeria     DZA            12
+```
+]
+
+---
+# Ejemplo *_join()
+
+- La variable "country" de `gapminder` identifica al país y la variable "country" es la que identifica el país en el objeto `isocode`. 
+--
+
+
+```r
+gapminder %&gt;% count(duplicated(country))
+isocode %&gt;% count(duplicated(country))
+```
+
+--
+- ¿Si quiero quedarme con todos los casos de `gapminder` (x) y agregarle las variables que están en `isocode` (y), qué join debo hacer?
+- ¿Qué dimensiones espero que tenga el nuevo data frame?
+
+---
+# Ejemplo *_join()
+
+- ¿Todos los casos de `gapminder` están en `isocode` y viceversa?
+
+
+```r
+isocode %&gt;% count(country %in% gapminder$country)
+```
+
+```
+# A tibble: 2 x 2
+  `country %in% gapminder$country`     n
+  &lt;lgl&gt;                            &lt;int&gt;
+1 FALSE                               45
+2 TRUE                               142
+```
+
+```r
+gapminder %&gt;% count(country %in% isocode$country)
+```
+
+```
+# A tibble: 1 x 2
+  `country %in% isocode$country`     n
+  &lt;lgl&gt;                          &lt;int&gt;
+1 TRUE                            1704
+```
+
+---
+#  Ejercicio (8')
+
+
+- Realizar un join entre el objeto gapminder e isocode, dejando la totalidad de las variables de gapminder y solo country e iso_alpha de isocode. Mantiene la totalidad de casos de gapminder. Llama al nuevo objeto gapminder_isocode
+
+- Verifica que la cantidad de casos que tiene el nuevo objeto sea la esperada
+
+
+
+- Guardar el nuevo objeto en un archivo llamado gapminder_iscode en formato rds.
+
+&lt;!-- --- --&gt;
+&lt;!-- # Sintaxis --&gt;
+
+&lt;!-- Buenas prácticas... --&gt;
+
+&lt;!-- - No "pegotear" el código: dejar espacios: --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- # :) --&gt;
+&lt;!-- x &lt;- 10 --&gt;
+
+&lt;!-- # :( --&gt;
+&lt;!-- x&lt;-10 --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - Nombrar los objetos y archivos con sentido  --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - Nombres en minúscula, no usar tildes ni ñ  --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - Separar términos con punto o guión bajo --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - Seguir la [guía de estilo Tidyverse](https://style.tidyverse.org/files.html) --&gt;
+
+&lt;!-- --- --&gt;
+&lt;!-- # Consejos --&gt;
+
+&lt;!-- - La curva de aprendizaje de R al comienzo suele resultar muy empinada.  --&gt;
+&lt;!-- &lt;br&gt;&lt;br&gt; --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - ¿Cómo podemos evitar o superar la frustración? --&gt;
+&lt;!-- &lt;br&gt;&lt;br&gt; --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - **Usá** R a diario, aunque puedas hacer esa tarea más rápida con otro programa. --&gt;
+&lt;!-- &lt;br&gt;&lt;br&gt; --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - **Traducí** a R una sintaxis sencilla de otro programa que conozcas. --&gt;
+&lt;!-- &lt;br&gt;&lt;br&gt; --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - **Escribí** tus sintaxis en un script y **comentalas** detalladamente (#). --&gt;
+&lt;!-- &lt;br&gt;&lt;br&gt; --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - **Reutilizá** sintaxis existentes. --&gt;
+&lt;!-- &lt;br&gt;&lt;br&gt; --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - Recurrí a los **foros** y a la ayuda de R para encontrar las soluciones a los problemas que te surjan --&gt;
+&lt;!-- &lt;br&gt;&lt;br&gt; --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- - Prestá atención a los **mensajes** de error y advertencia. --&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9",
+"slideNumberFormat": "<div class=\"progress-bar-container\">\n  <div class=\"progress-bar\" style=\"width: calc(%current% / %total% * 100%);\">\n  </div>\n</div>\n"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
